@@ -39,6 +39,9 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/ipa/Payload" dist
           ditto "$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/Moonlight.app" "$RUNNER_TEMP/ipa/Payload/Moonlight.app"
+          app="$RUNNER_TEMP/ipa/Payload/Moonlight.app"
+          find "$app" -name _CodeSignature -type d -prune -print -exec rm -rf {} +
+          find "$app" -name embedded.mobileprovision -type f -print -delete
           (cd "$RUNNER_TEMP/ipa" && zip -qry "$GITHUB_WORKSPACE/dist/Moonlight-Duo.ipa" Payload)
           python3 scripts/verify_ipa.py dist/Moonlight-Duo.ipa | tee dist/verification.txt
           shasum -a 256 dist/Moonlight-Duo.ipa | tee dist/SHA256SUMS.txt
