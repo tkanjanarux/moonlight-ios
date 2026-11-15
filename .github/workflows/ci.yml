@@ -1,45 +1,58 @@
-name: CI
-
+name: Moonlight Duo IPA
 on:
   push:
-  pull_request:
-    branches:
-      - master
+    branches: [master]
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
-
 jobs:
   build:
-    name: Build (${{ matrix.platform }})
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - scheme: Moonlight
-            sdk: iphonesimulator
-            platform: iOS
-          - scheme: Moonlight TV
-            sdk: appletvsimulator
-            platform: tvOS
-
+    runs-on: xcode-27
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
-
-      - name: Download ${{ matrix.platform }} platform
-        run: xcodebuild -downloadPlatform ${{ matrix.platform }}
-
-      - name: Build Debug
-        run: xcodebuild -project Moonlight.xcodeproj -scheme "${{ matrix.scheme }}" -configuration Debug -sdk ${{ matrix.sdk }} clean build
-
-      - name: Build Release
-        run: xcodebuild -project Moonlight.xcodeproj -scheme "${{ matrix.scheme }}" -configuration Release -sdk ${{ matrix.sdk }} clean build
+          persist-credentials: false
+      - name: Verify toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          test "$(sw_vers -productVersion | cut -d. -f1)" = 27
+          xcodebuild -version | grep -Fx 'Xcode 27.2'
+          xcrun --sdk iphoneos --show-sdk-version
+          git submodule status --recursive
+      - name: Build unsigned Release ARM64
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -project Moonlight.xcodeproj -scheme Moonlight \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= build 2>&1 | tee build.log
+      - name: Package and verify IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ipa/Payload" dist
+          ditto "$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/Moonlight.app" "$RUNNER_TEMP/ipa/Payload/Moonlight.app"
+          (cd "$RUNNER_TEMP/ipa" && zip -qry "$GITHUB_WORKSPACE/dist/Moonlight-Duo.ipa" Payload)
+          python3 scripts/verify_ipa.py dist/Moonlight-Duo.ipa | tee dist/verification.txt
+          shasum -a 256 dist/Moonlight-Duo.ipa | tee dist/SHA256SUMS.txt
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Moonlight-Duo
+          path: dist/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
