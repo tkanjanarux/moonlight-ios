@@ -16,3 +16,5 @@ Open Actions > Moonlight Duo IPA > Run workflow on master. Download the `Moonlig
 The workflow packages `Payload/Moonlight.app` directly, without a paid developer account or an export signing profile. It validates ZIP integrity, device platform, ARM64 Mach-O, unencrypted executable, scene manifest, phone storyboard, bundle identifier, and absence of provisioning/signature files before uploading.
 
 No device, Simulator, streaming, or performance tests are performed. Passing the build and package validation does not establish runtime behavior on hardware.
+
+Build compatibility: header search paths use the selected TOOLCHAIN_DIR, avoiding mixed Xcode versions and duplicate SwiftBridging modules on multi-Xcode runners.
