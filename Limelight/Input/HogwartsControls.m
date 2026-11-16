@@ -3,6 +3,9 @@
 #include "Limelight.h"
 #include <math.h>
 
+static const CGFloat CameraMultipliers[] = {1, 2, 3, 4, 6};
+static NSString * const CameraSpeedKey = @"HogwartsCameraSpeedIndex";
+
 @implementation HogwartsControls {
     ControllerSupport *_support;
     Controller *_controller;
@@ -15,6 +18,7 @@
     short _lx, _ly;
     CGPoint _mouseRemainder;
     CGFloat _unit;
+    NSInteger _cameraSpeedIndex;
     CGSize _lastSize;
     BOOL _drawer, _sprint, _busy, _suspended;
     int _pulseFlags;
@@ -24,6 +28,9 @@
 
 - (instancetype)initWithFrame:(CGRect)frame controllerSupport:(ControllerSupport *)support {
     if ((self = [super initWithFrame:frame])) {
+        _cameraSpeedIndex = [NSUserDefaults.standardUserDefaults objectForKey:CameraSpeedKey]
+            ? [NSUserDefaults.standardUserDefaults integerForKey:CameraSpeedKey] : 2;
+        if (_cameraSpeedIndex < 0 || _cameraSpeedIndex >= 5) _cameraSpeedIndex = 2;
         _support = support;
         _controller = [support getOscController];
         _buttons = [NSMutableArray array];
@@ -36,6 +43,7 @@
         // x is distance from the left/right edge; y is distance from the bottom.
         // Dimensions are design millimetres calibrated for the unfolded Duo panel.
         NSArray *specs = @[
+            @[@"cameraSpeed", @"3x", @"Camera sensitivity", @1,@7,@83,@9,@1],
             @[@"cast", @"CAST", @"Basic Cast", @1,@18,@30,@16,@0],
             @[@"shield", @"P", @"Protego: hold for Stupefy", @1,@40,@23,@9,@0],
             @[@"dodge", @"B", @"Dodge", @1,@34,@11,@10,@0],
@@ -71,6 +79,7 @@
             b.accessibilityIdentifier = spec[0];
             b.accessibilityLabel = spec[2];
             [b setTitle:spec[1] forState:UIControlStateNormal];
+            if ([spec[0] isEqual:@"cameraSpeed"]) [self updateCameraSpeedButton:b];
             b.titleLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold];
             b.backgroundColor = [UIColor colorWithRed:0.04 green:0.06 blue:0.08 alpha:0.38];
             b.layer.borderColor = [UIColor colorWithRed:0.83 green:0.71 blue:0.44 alpha:0.85].CGColor;
@@ -231,10 +240,22 @@
         [s runNextPulse];
     });
 }
+- (void)updateCameraSpeedButton:(UIButton *)button {
+    NSString *value = [NSString stringWithFormat:@"%.0fx", CameraMultipliers[_cameraSpeedIndex]];
+    [button setTitle:value forState:UIControlStateNormal];
+    button.accessibilityLabel = [@"Camera sensitivity " stringByAppendingString:value];
+}
 - (void)buttonDown:(UIButton *)button {
     if (_suspended) return;
     NSString *a = button.accessibilityIdentifier;
     button.alpha = 0.55;
+    if ([a isEqual:@"cameraSpeed"]) {
+        _cameraSpeedIndex = (_cameraSpeedIndex + 1) % 5;
+        [NSUserDefaults.standardUserDefaults setInteger:_cameraSpeedIndex forKey:CameraSpeedKey];
+        _mouseRemainder = CGPointZero;
+        [self updateCameraSpeedButton:button];
+        return;
+    }
     if ([a isEqual:@"exit"]) {
         [self releaseAll];
         [_support requestStreamExit];
@@ -270,6 +291,7 @@
 }
 - (void)buttonUp:(UIButton *)button {
     button.alpha = 1;
+    if ([button.accessibilityIdentifier isEqual:@"cameraSpeed"]) return;
     [_held removeObject:button.accessibilityIdentifier];
     [self sendState];
     [self runNextPulse];
@@ -308,8 +330,9 @@
         } else if (touch == _cameraTouch) {
             // Relative mouse counts, with uniform gain and subpixel accumulation.
             // No joystick velocity or delayed stop: a stationary finger sends nothing.
-            CGFloat dx = (p.x - _cameraPoint.x) * 1.5 + _mouseRemainder.x;
-            CGFloat dy = (p.y - _cameraPoint.y) * 1.5 + _mouseRemainder.y;
+            CGFloat gain = 1.5 * CameraMultipliers[_cameraSpeedIndex];
+            CGFloat dx = (p.x - _cameraPoint.x) * gain + _mouseRemainder.x;
+            CGFloat dy = (p.y - _cameraPoint.y) * gain + _mouseRemainder.y;
             short x = (short)MAX(-32767, MIN(32767, trunc(dx)));
             short y = (short)MAX(-32767, MIN(32767, trunc(dy)));
             _mouseRemainder = CGPointMake(dx - x, dy - y);

@@ -2,7 +2,7 @@ from pathlib import Path
 import re,itertools
 s=Path('Limelight/Input/HogwartsControls.m').read_text(encoding='utf-8')
 rows=re.findall(r'@\[@"(\w+)", @"[^"]+", @"[^"]+", @(\d),@(\d+),@(\d+),@(\d+),@(\d)\]',s)
-assert len(rows)==29,len(rows)
+assert len(rows)==30,len(rows)
 for w,h,l,r,t,b in [(951,669,0,0,0,21),(951,669,62,62,0,21),(852,393,59,59,0,21),(667,375,0,0,0,0)]:
  u=min((w-l-r-8)/157.7,(h-t-b-8)/88)
  for drawer in (False,True):
@@ -19,4 +19,4 @@ for w,h,l,r,t,b in [(951,669,0,0,0,21),(951,669,62,62,0,21),(852,393,59,59,0,21)
   assert abs(max(f[2] for _,f in frames)-(w-8))<1e-6
   for (an,a),(bn,bf) in itertools.combinations(frames,2):
    assert not (max(a[0],bf[0])<min(a[2],bf[2]) and max(a[1],bf[1])<min(a[3],bf[3])),(w,h,drawer,an,bn)
-print('PASS: 29 controls; no hit-box overlap or unsafe bounds in 8 layout states')
+print('PASS: 30 controls; no hit-box overlap or unsafe bounds in 8 layout states')

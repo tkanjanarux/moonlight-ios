@@ -1,4 +1,4 @@
-# Hogwarts touch preview (build 5)
+# Hogwarts touch preview (build 6)
 
 Enable Settings > Touch Mode > Touchpad, then On-Screen Controls > Hogwarts.
 Disable Swap A/B and X/Y for the documented default Xbox bindings.
@@ -12,7 +12,9 @@ from the lower edges. Calibration assumes a full-screen inner panel about
 - Touch empty space in the left 45% to create a floating movement stick. Release
   to hide it and send neutral input. RUN toggles L3 and clears when movement ends.
 - Drag empty space on the right to send relative mouse movement for the camera.
-  Gain is 1.5 mouse counts per UIKit point on both axes, without acceleration.
+  Default gain is 4.5 mouse counts per UIKit point on both axes (3x the
+  original), without acceleration. In the extra-controls drawer, tap the
+  sensitivity button to cycle 1x / 2x / 3x / 4x / 6x. This setting persists.
   Adjust mouse sensitivity in the game to taste. Lifting and touching again
   repositions the finger without moving the camera; taps do not click.
   Movement/buttons remain gamepad input; simultaneous mouse/gamepad handling
