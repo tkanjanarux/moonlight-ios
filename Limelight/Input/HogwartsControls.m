@@ -128,12 +128,21 @@
     CGFloat width = self.bounds.size.width - safe.left - safe.right - 8;
     CGFloat height = self.bounds.size.height - safe.top - safe.bottom - 8;
     _unit = MAX(0, MIN(width / 157.7, height / 88.0));
+    // Anchor the visible cluster's outer edge to the display, not the broad
+    // landscape safe-area inset. Move the whole group to preserve spacing.
+    CGFloat rightEdge = CGFLOAT_MAX;
+    for (UIButton *b in _buttons) {
+        NSArray *s = [b.layer valueForKey:@"hogwartsSpec"];
+        if ([s[3] boolValue] && [s[7] boolValue] == _drawer) {
+            rightEdge = MIN(rightEdge, [s[4] doubleValue] - [s[6] doubleValue] / 2);
+        }
+    }
     for (UIButton *b in _buttons) {
         NSArray *s = [b.layer valueForKey:@"hogwartsSpec"];
         CGFloat d = [s[6] doubleValue] * _unit;
         BOOL right = [s[3] boolValue];
         CGFloat x = [s[4] doubleValue] * _unit;
-        x = right ? self.bounds.size.width - safe.right - 4 - x : safe.left + 4 + x;
+        x = right ? self.bounds.size.width - 8 - x + rightEdge * _unit : safe.left + 4 + x;
         CGFloat y = self.bounds.size.height - safe.bottom - 4 - [s[5] doubleValue] * _unit;
         b.frame = CGRectMake(x-d/2, y-d/2, d, d);
         b.layer.cornerRadius = d/2;

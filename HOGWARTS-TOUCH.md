@@ -1,4 +1,4 @@
-# Hogwarts touch preview (build 4)
+# Hogwarts touch preview (build 5)
 
 Enable Settings > Touch Mode > Touchpad, then On-Screen Controls > Hogwarts.
 Disable Swap A/B and X/Y for the documented default Xbox bindings.
@@ -39,3 +39,7 @@ Dodge/jump sit below, Protego to the left. Whole groups scale and anchor inside
 the safe area without individual clamping or minimum sizes collapsing columns.
 Extra controls replace the right combat cluster while open. Minimap/health are
 part of the streamed game image and are not repositioned by this overlay.
+
+Build 5: the right cluster is translated as a group so its outermost button
+is 8 UIKit points from the display edge, ignoring the right landscape inset.
+Button sizes, relative spacing, floating movement and mouse camera are unchanged.
