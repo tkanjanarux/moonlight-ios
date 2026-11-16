@@ -20,6 +20,7 @@ with zipfile.ZipFile(path) as ipa:
     assert info['UIApplicationSceneManifest']['UISceneConfigurations']
     assert not any(n.endswith('embedded.mobileprovision') or '/_CodeSignature/' in n for n in names), 'Unexpected signing material'
     data = ipa.read(prefix + info['CFBundleExecutable'])
+    assert b'HogwartsControls' in data, 'Missing Hogwarts touch overlay in executable'
     magic, cpu = struct.unpack_from('<II', data)
     assert magic == 0xFEEDFACF and cpu == 0x0100000C, 'Executable is not thin ARM64 Mach-O'
     ncmds = struct.unpack_from('<I', data, 16)[0]

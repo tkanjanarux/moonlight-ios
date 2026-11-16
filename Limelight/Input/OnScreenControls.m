@@ -10,12 +10,14 @@
 #import "StreamView.h"
 #import "ControllerSupport.h"
 #import "Controller.h"
+#import "HogwartsControls.h"
 #include "Limelight.h"
 
 #define UPDATE_BUTTON(x, y) (buttonFlags = \
 (y) ? (buttonFlags | (x)) : (buttonFlags & ~(x)))
 
 @implementation OnScreenControls {
+    HogwartsControls *_hogwarts;
     CALayer* _aButton;
     CALayer* _bButton;
     CALayer* _xButton;
@@ -179,6 +181,16 @@ static float L3_Y;
 }
 
 - (void) updateControls {
+    if (_level == OnScreenControlsLevelHogwarts) {
+        [self hideButtons]; [self hideBumpers]; [self hideTriggers];
+        [self hideStartSelect]; [self hideSticks]; [self hideL3R3];
+        if (!_hogwarts) {
+            _hogwarts = [[HogwartsControls alloc] initWithFrame:_view.bounds controllerSupport:_controllerSupport];
+        }
+        if (!_hogwarts.superview) [_view addSubview:_hogwarts];
+        return;
+    }
+    if (_hogwarts.superview) [_hogwarts removeFromSuperview];
     switch (_level) {
         case OnScreenControlsLevelOff:
             [self hideButtons];

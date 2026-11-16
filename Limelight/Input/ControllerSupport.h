@@ -26,6 +26,7 @@
 
 -(void) initAutoOnScreenControlMode:(OnScreenControls*)osc;
 -(void) cleanup;
+-(void) requestStreamExit;
 -(Controller*) getOscController;
 
 -(void) updateLeftStick:(Controller*)controller x:(short)x y:(short)y;

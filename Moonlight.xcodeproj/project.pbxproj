@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A72900000000000000000001 /* HogwartsControls.m in Sources */ = {isa = PBXBuildFile; fileRef = A72900000000000000000003 /* HogwartsControls.m */; };
+		A72900000000000000000002 /* HogwartsControls.m in Sources */ = {isa = PBXBuildFile; fileRef = A72900000000000000000003 /* HogwartsControls.m */; };
 		693B3A9B218638CD00982F7B /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 693B3A9A218638CD00982F7B /* Settings.bundle */; };
 		98181BE92791277400E43572 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98181BE82791275D00E43572 /* libSDL2.a */; };
 		98181BEB2791278F00E43572 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98181BEA2791278300E43572 /* libSDL2.a */; };
@@ -170,6 +172,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A72900000000000000000003 /* HogwartsControls.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HogwartsControls.m; sourceTree = "<group>"; };
+		A72900000000000000000004 /* HogwartsControls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HogwartsControls.h; sourceTree = "<group>"; };
 		566E9D2B2770B23A00EF7BFE /* Moonlight v1.7.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Moonlight v1.7.xcdatamodel"; sourceTree = "<group>"; };
 		693B3A9A218638CD00982F7B /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		9803CCAB254F9EAF00EE185E /* ConnectionCallbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionCallbacks.h; sourceTree = "<group>"; };
@@ -506,6 +510,8 @@
 				FB89460C19F646E200339C8A /* StreamView.h */,
 				FB89460D19F646E200339C8A /* StreamView.m */,
 				FB4678EB1A50C40900377732 /* OnScreenControls.h */,
+				A72900000000000000000003 /* HogwartsControls.m */,
+				A72900000000000000000004 /* HogwartsControls.h */,
 				FB4678EC1A50C40900377732 /* OnScreenControls.m */,
 				FB1A674B2131E65900507771 /* KeyboardSupport.h */,
 				FB1A674C2131E65900507771 /* KeyboardSupport.m */,
@@ -850,6 +856,7 @@
 				FB1A67D82132460400507771 /* StreamView.m in Sources */,
 				9896219A23D56E8100211983 /* X1Kit.swift in Sources */,
 				FB1A67DA2132460400507771 /* OnScreenControls.m in Sources */,
+				A72900000000000000000002 /* HogwartsControls.m in Sources */,
 				FB1A67DC2132460400507771 /* KeyboardSupport.m in Sources */,
 				FB1A67CD213245F800507771 /* DataManager.m in Sources */,
 				FB1A67CF213245F800507771 /* TemporaryApp.m in Sources */,
@@ -923,6 +930,7 @@
 				FB89462E19F646E200339C8A /* PairManager.m in Sources */,
 				FB9AFD371A7E02DB00872C98 /* HttpRequest.m in Sources */,
 				FB4678ED1A50C40900377732 /* OnScreenControls.m in Sources */,
+				A72900000000000000000001 /* HogwartsControls.m in Sources */,
 				FB290D0019B2C406004C83CF /* main.m in Sources */,
 				9896219723D15C7000211983 /* X1Kit.swift in Sources */,
 				FBD3494319FC9C04002D2A60 /* AppAssetManager.m in Sources */,

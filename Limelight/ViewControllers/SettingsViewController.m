@@ -9,6 +9,7 @@
 #import "SettingsViewController.h"
 #import "TemporarySettings.h"
 #import "DataManager.h"
+#import "OnScreenControls.h"
 
 #import <VideoToolbox/VideoToolbox.h>
 #import <AVFoundation/AVFoundation.h>
@@ -255,7 +256,8 @@ BOOL isCustomResolution(CGSize res) {
     [self.resolutionSelector addTarget:self action:@selector(newResolutionChosen) forControlEvents:UIControlEventValueChanged];
     [self.framerateSelector setSelectedSegmentIndex:framerate];
     [self.framerateSelector addTarget:self action:@selector(updateBitrate) forControlEvents:UIControlEventValueChanged];
-    [self.onscreenControlSelector setSelectedSegmentIndex:onscreenControls];
+    [self.onscreenControlSelector insertSegmentWithTitle:@"Hogwarts" atIndex:4 animated:NO];
+    [self.onscreenControlSelector setSelectedSegmentIndex:onscreenControls == OnScreenControlsLevelHogwarts ? 4 : onscreenControls];
     [self.onscreenControlSelector setEnabled:!currentSettings.absoluteTouchMode];
     [self.bitrateSlider setMinimumValue:0];
     [self.bitrateSlider setMaximumValue:(sizeof(bitrateTable) / sizeof(*bitrateTable)) - 1];
@@ -528,6 +530,7 @@ BOOL isCustomResolution(CGSize res) {
     NSInteger height = [self getChosenStreamHeight];
     NSInteger width = [self getChosenStreamWidth];
     NSInteger onscreenControls = [self.onscreenControlSelector selectedSegmentIndex];
+    if (onscreenControls == 4) onscreenControls = OnScreenControlsLevelHogwarts;
     BOOL optimizeGames = [self.optimizeSettingsSelector selectedSegmentIndex] == 1;
     BOOL multiController = [self.multiControllerSelector selectedSegmentIndex] == 1;
     BOOL swapABXYButtons = [self.swapABXYButtonsSelector selectedSegmentIndex] == 1;
