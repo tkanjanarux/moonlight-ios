@@ -12,13 +12,14 @@
     UITouch *_moveTouch;
     UITouch *_cameraTouch;
     CGPoint _origin, _movePoint, _cameraPoint;
-    short _lx, _ly, _rx, _ry;
+    short _lx, _ly;
+    CGPoint _mouseRemainder;
     CGFloat _unit;
     CGSize _lastSize;
     BOOL _drawer, _sprint, _busy, _suspended;
     int _pulseFlags;
     unsigned char _pulseRT;
-    NSUInteger _generation, _cameraGeneration;
+    NSUInteger _generation;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame controllerSupport:(ControllerSupport *)support {
@@ -150,7 +151,7 @@
 - (void)sendState {
     [_support updateButtonFlags:_controller flags:[self heldFlags] | _pulseFlags];
     [_support updateLeftStick:_controller x:_lx y:_ly];
-    [_support updateRightStick:_controller x:_rx y:_ry];
+    [_support updateRightStick:_controller x:0 y:0];
     [_support updateTriggers:_controller left:[_held containsObject:@"aim"] ? 255 : 0 right:_pulseRT];
     [_support updateFinished:_controller];
 }
@@ -163,9 +164,9 @@
     [self sendState];
 }
 - (void)releaseAll {
-    ++_cameraGeneration;
     _moveTouch = nil; _cameraTouch = nil;
-    _lx = _ly = _rx = _ry = 0;
+    _lx = _ly = 0;
+    _mouseRemainder = CGPointZero;
     _sprint = NO;
     [_held removeAllObjects];
     [self cancelPulse];
@@ -259,14 +260,17 @@
         } else if (p.x >= self.bounds.size.width * .45 && !_cameraTouch) {
             _cameraTouch = touch;
             _cameraPoint = p;
+            _mouseRemainder = CGPointZero;
         }
     }
     [self setNeedsDisplay];
 }
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    BOOL movementChanged = NO;
     for (UITouch *touch in touches) {
         CGPoint p = [touch locationInView:self];
         if (touch == _moveTouch) {
+            movementChanged = YES;
             CGFloat dx = p.x - _origin.x, dy = p.y - _origin.y;
             CGFloat radius = MAX(24, 6 * _unit), distance = hypot(dx, dy);
             CGFloat factor = distance > radius ? radius / distance : 1;
@@ -276,28 +280,27 @@
             _lx = distance > 0 ? 32766 * dx/distance * output : 0;
             _ly = distance > 0 ? -32766 * dy/distance * output : 0;
         } else if (touch == _cameraTouch) {
-            _rx = 32766 * MAX(-1, MIN(1, (p.x-_cameraPoint.x)/12));
-            _ry = -32766 * MAX(-1, MIN(1, (p.y-_cameraPoint.y)/12));
+            // Relative mouse counts, with uniform gain and subpixel accumulation.
+            // No joystick velocity or delayed stop: a stationary finger sends nothing.
+            CGFloat dx = (p.x - _cameraPoint.x) * 1.5 + _mouseRemainder.x;
+            CGFloat dy = (p.y - _cameraPoint.y) * 1.5 + _mouseRemainder.y;
+            short x = (short)MAX(-32767, MIN(32767, trunc(dx)));
+            short y = (short)MAX(-32767, MIN(32767, trunc(dy)));
+            _mouseRemainder = CGPointMake(dx - x, dy - y);
             _cameraPoint = p;
-            NSUInteger generation = ++_cameraGeneration;
-            __weak HogwartsControls *weakSelf = self;
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 65*NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
-                HogwartsControls *s = weakSelf;
-                if (!s || generation != s->_cameraGeneration) return;
-                s->_rx = s->_ry = 0;
-                [s sendState];
-            });
+            if (x || y) LiSendMouseMoveEvent(x, y);
         }
     }
-    [self sendState];
+    if (movementChanged) [self sendState];
     [self setNeedsDisplay];
 }
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    BOOL movementChanged = NO;
     for (UITouch *touch in touches) {
-        if (touch == _moveTouch) { _moveTouch = nil; _lx = _ly = 0; _sprint = NO; }
-        if (touch == _cameraTouch) { _cameraTouch = nil; _rx = _ry = 0; ++_cameraGeneration; }
+        if (touch == _moveTouch) { movementChanged = YES; _moveTouch = nil; _lx = _ly = 0; _sprint = NO; }
+        if (touch == _cameraTouch) { _cameraTouch = nil; _mouseRemainder = CGPointZero; }
     }
-    [self sendState];
+    if (movementChanged) [self sendState];
     [self setNeedsDisplay];
 }
 - (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event { [self releaseAll]; }
