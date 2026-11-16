@@ -1,4 +1,4 @@
-# Hogwarts touch preview (build 3)
+# Hogwarts touch preview (build 4)
 
 Enable Settings > Touch Mode > Touchpad, then On-Screen Controls > Hogwarts.
 Disable Swap A/B and X/Y for the documented default Xbox bindings.
@@ -33,3 +33,9 @@ or removal from the window. Fractional mouse movement resets between gestures.
 This is an experimental input implementation. CI verifies device compilation and
 IPA contents only. Touch feel, spell timing, folds, and controller mappings have
 not been tested on an iPhone, Simulator, or in the game.
+
+Build 4: gold translucent controls; four spell slots arc around a larger CAST.
+Dodge/jump sit below, Protego to the left. Whole groups scale and anchor inside
+the safe area without individual clamping or minimum sizes collapsing columns.
+Extra controls replace the right combat cluster while open. Minimap/health are
+part of the streamed game image and are not repositioned by this overlay.

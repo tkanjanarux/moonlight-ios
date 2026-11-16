@@ -36,18 +36,18 @@
         // x is distance from the left/right edge; y is distance from the bottom.
         // Dimensions are design millimetres calibrated for the unfolded Duo panel.
         NSArray *specs = @[
-            @[@"cast", @"CAST", @"Basic Cast", @1,@18,@17,@11,@0],
-            @[@"shield", @"P", @"Protego: hold for Stupefy", @1,@18,@30,@10,@0],
-            @[@"dodge", @"B", @"Dodge", @1,@30,@16,@10,@0],
-            @[@"spell1", @"1", @"Spell slot Y", @1,@7,@38,@9,@0],
-            @[@"spell2", @"2", @"Spell slot B", @1,@19,@43,@9,@0],
-            @[@"spell3", @"3", @"Spell slot A", @1,@31,@39,@9,@0],
-            @[@"spell4", @"4", @"Spell slot X", @1,@37,@28,@9,@0],
-            @[@"jump", @"A", @"Jump / menu confirm", @1,@7,@12,@9,@0],
+            @[@"cast", @"CAST", @"Basic Cast", @1,@18,@30,@16,@0],
+            @[@"shield", @"P", @"Protego: hold for Stupefy", @1,@40,@23,@9,@0],
+            @[@"dodge", @"B", @"Dodge", @1,@34,@11,@10,@0],
+            @[@"spell1", @"1", @"Spell slot Y", @1,@9,@49,@9,@0],
+            @[@"spell2", @"2", @"Spell slot B", @1,@21,@51,@9,@0],
+            @[@"spell3", @"3", @"Spell slot A", @1,@33,@46,@9,@0],
+            @[@"spell4", @"4", @"Spell slot X", @1,@40,@36,@9,@0],
+            @[@"jump", @"A", @"Jump / menu confirm", @1,@18,@11,@9,@0],
             @[@"heal", @"+", @"Wiggenweld", @0,@8,@38,@9,@0],
             @[@"revelio", @"R", @"Revelio", @0,@21,@42,@9,@0],
             @[@"more", @"…", @"Extra controls", @0,@34,@38,@9,@0],
-            @[@"sprint", @"RUN", @"Toggle sprint", @0,@34,@18,@9,@0],
+            @[@"sprint", @"RUN", @"Toggle sprint", @0,@32,@25,@9,@0],
             @[@"interact", @"X", @"Interact / menu action", @0,@8,@53,@9,@1],
             @[@"ancient", @"AM", @"Ancient Magic", @0,@21,@53,@9,@1],
             @[@"throw", @"RB", @"Ancient Magic Throw", @0,@34,@53,@9,@1],
@@ -72,9 +72,25 @@
             b.accessibilityLabel = spec[2];
             [b setTitle:spec[1] forState:UIControlStateNormal];
             b.titleLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold];
-            b.backgroundColor = [UIColor.blackColor colorWithAlphaComponent:0.16];
-            b.layer.borderColor = [UIColor.whiteColor colorWithAlphaComponent:0.65].CGColor;
+            b.backgroundColor = [UIColor colorWithRed:0.04 green:0.06 blue:0.08 alpha:0.38];
+            b.layer.borderColor = [UIColor colorWithRed:0.83 green:0.71 blue:0.44 alpha:0.85].CGColor;
+            [b setTitleColor:[UIColor colorWithRed:0.96 green:0.91 blue:0.77 alpha:1] forState:UIControlStateNormal];
+            b.titleLabel.adjustsFontSizeToFitWidth = YES;
+            b.titleLabel.minimumScaleFactor = 0.6;
             b.layer.borderWidth = 1;
+            NSDictionary *symbols = @{@"sprint": @"figure.run", @"dodge": @"arrow.turn.down.right",
+                                      @"jump": @"arrow.up", @"shield": @"shield.lefthalf.filled",
+                                      @"heal": @"cross.case", @"interact": @"hand.raised",
+                                      @"menu": @"pause.fill", @"revelio": @"eye"};
+            NSString *symbol = symbols[spec[0]];
+            UIImage *icon = symbol ? [UIImage systemImageNamed:symbol] : nil;
+            if (icon) {
+                [b setTitle:@"" forState:UIControlStateNormal];
+                [b setImage:icon forState:UIControlStateNormal];
+                b.tintColor = [b titleColorForState:UIControlStateNormal];
+                [b setPreferredSymbolConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:20 weight:UIImageSymbolWeightRegular]
+                                     forImageInState:UIControlStateNormal];
+            }
             b.multipleTouchEnabled = NO;
             // Store immutable layout metadata on a separate accessibility-free layer.
             [b.layer setValue:spec forKey:@"hogwartsSpec"];
@@ -106,22 +122,23 @@
         [self releaseAll];
         _lastSize = self.bounds.size;
     }
-    UIScreen *screen = self.window.screen ?: UIScreen.mainScreen;
-    CGFloat screenWidth = MAX(screen.bounds.size.width, screen.bounds.size.height);
-    _unit = MIN(6.1, MAX(4.0, screenWidth / 157.7163));
-    // Fit on the cover display as well; unfolded Duo retains physical calibration.
-    _unit = MIN(_unit, MIN(self.bounds.size.width / 110.0, self.bounds.size.height / 88.0));
+    // Scale the complete layout, then anchor each group inside the safe area.
+    // Per-button edge clamping used to collapse different columns together.
+    UIEdgeInsets safe = self.safeAreaInsets;
+    CGFloat width = self.bounds.size.width - safe.left - safe.right - 8;
+    CGFloat height = self.bounds.size.height - safe.top - safe.bottom - 8;
+    _unit = MAX(0, MIN(width / 157.7, height / 88.0));
     for (UIButton *b in _buttons) {
         NSArray *s = [b.layer valueForKey:@"hogwartsSpec"];
-        CGFloat d = MAX(44, [s[6] doubleValue] * _unit);
+        CGFloat d = [s[6] doubleValue] * _unit;
         BOOL right = [s[3] boolValue];
-        CGFloat inset = right ? self.safeAreaInsets.right : self.safeAreaInsets.left;
-        CGFloat x = MAX(inset + d/2 + 2, [s[4] doubleValue] * _unit);
-        if (right) x = self.bounds.size.width - x;
-        CGFloat y = self.bounds.size.height - MAX(self.safeAreaInsets.bottom + d/2 + 2, [s[5] doubleValue] * _unit);
+        CGFloat x = [s[4] doubleValue] * _unit;
+        x = right ? self.bounds.size.width - safe.right - 4 - x : safe.left + 4 + x;
+        CGFloat y = self.bounds.size.height - safe.bottom - 4 - [s[5] doubleValue] * _unit;
         b.frame = CGRectMake(x-d/2, y-d/2, d, d);
         b.layer.cornerRadius = d/2;
-        b.hidden = [s[7] boolValue] && !_drawer;
+        // Extra controls replace the combat cluster, so the two never overlap.
+        b.hidden = [s[7] boolValue] ? !_drawer : (right && _drawer);
     }
     [self setNeedsDisplay];
 }
